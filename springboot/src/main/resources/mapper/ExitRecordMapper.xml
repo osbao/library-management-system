@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.springboot.mapper.ExitRecordMapper">
+
+    <resultMap id="exitRecordMap" type="com.example.springboot.entity.ExitRecord">
+        <id property="id" column="id"/>
+        <result property="spotNo" column="spot_no"/>
+        <result property="driverNo" column="driver_no"/>
+        <result property="driverName" column="driver_name"/>
+        <result property="driverPhone" column="driver_phone"/>
+        <result property="plateNumber" column="plate_number"/>
+        <result property="totalFee" column="total_fee"/>
+        <result property="paymentMethod" column="payment_method"/>
+        <result property="entryTime" column="entry_time"/>
+        <result property="actualExit" column="actual_exit"/>
+        <result property="parkedDays" column="parked_days"/>
+        <result property="updatetime" column="updatetime"/>
+    </resultMap>
+
+    <!-- 查询所有离场记录 -->
+    <select id="list" resultMap="exitRecordMap">
+        SELECT * FROM exit_record ORDER BY actual_exit DESC
+    </select>
+
+    <!-- 按条件查询离场记录 -->
+    <select id="listByCondition" resultMap="exitRecordMap" parameterType="com.example.springboot.controller.request.BaseRequest">
+        SELECT * FROM exit_record
+        <where>
+            <if test="name != null and name != ''">
+                AND (driver_name LIKE CONCAT('%', #{name}, '%')
+                     OR plate_number LIKE CONCAT('%', #{name}, '%')
+                     OR driver_no LIKE CONCAT('%', #{name}, '%'))
+            </if>
+        </where>
+        ORDER BY actual_exit DESC
+    </select>
+
+    <!-- 新增离场记录 -->
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO exit_record (
+            spot_no, driver_no, driver_name, driver_phone, plate_number,
+            total_fee, payment_method, entry_time, actual_exit, parked_days
+        ) VALUES (
+            #{spotNo}, #{driverNo}, #{driverName}, #{driverPhone}, #{plateNumber},
+            #{totalFee}, #{paymentMethod}, #{entryTime}, #{actualExit}, #{parkedDays}
+        )
+    </insert>
+
+    <!-- 根据ID查询 -->
+    <select id="getById" resultMap="exitRecordMap">
+        SELECT * FROM exit_record WHERE id = #{id}
+    </select>
+
+    <!-- 更新离场记录 -->
+    <update id="updateById">
+        UPDATE exit_record
+        SET spot_no = #{spotNo},
+            driver_no = #{driverNo},
+            driver_name = #{driverName},
+            driver_phone = #{driverPhone},
+            plate_number = #{plateNumber},
+            total_fee = #{totalFee},
+            payment_method = #{paymentMethod},
+            entry_time = #{entryTime},
+            actual_exit = #{actualExit},
+            parked_days = #{parkedDays},
+            updatetime = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除离场记录 -->
+    <delete id="deleteById">
+        DELETE FROM exit_record WHERE id = #{id}
+    </delete>
+
+    <!-- 按时间段统计离场记录 -->
+    <select id="listByTimeRange" resultMap="exitRecordMap">
+        SELECT * FROM exit_record WHERE 1=1
+        <if test="begin != null">
+            AND actual_exit &gt;= #{begin}
+        </if>
+        <if test="end != null">
+            AND actual_exit &lt;= #{end}
+        </if>
+        ORDER BY actual_exit DESC
+    </select>
+
+    <!-- 按时间段和条件筛选离场记录 -->
+    <select id="listByConditionWithTimeRange" resultMap="exitRecordMap">
+        SELECT * FROM exit_record WHERE 1=1
+        <if test="begin != null">
+            AND actual_exit &gt;= #{begin}
+        </if>
+        <if test="end != null">
+            AND actual_exit &lt;= #{end}
+        </if>
+        <if test="plate != null and plate != ''">
+            AND plate_number LIKE CONCAT('%', #{plate}, '%')
+        </if>
+        <if test="spotNo != null and spotNo != ''">
+            AND spot_no LIKE CONCAT('%', #{spotNo}, '%')
+        </if>
+        ORDER BY actual_exit DESC
+    </select>
+
+    <!-- 车位收入Top10报表 -->
+    <select id="getSpotRevenueTop10" resultType="com.example.springboot.pojo.dto.SpotRevenueDTO">
+        SELECT spot_no AS name, SUM(total_fee) AS number
+        FROM exit_record
+        WHERE 1=1
+        <if test="begin != null">
+            AND actual_exit &gt;= #{begin}
+        </if>
+        <if test="end != null">
+            AND actual_exit &lt;= #{end}
+        </if>
+        GROUP BY spot_no
+        ORDER BY SUM(total_fee) DESC
+        LIMIT 10
+    </select>
+
+    <!-- 高频车主Top10报表 -->
+    <select id="getDriverVisitTop10" resultType="com.example.springboot.pojo.dto.DriverVisitDTO">
+        SELECT CONCAT(driver_name, '(', plate_number, ')') AS name, COUNT(*) AS number
+        FROM exit_record
+        WHERE 1=1
+        <if test="begin != null">
+            AND actual_exit &gt;= #{begin}
+        </if>
+        <if test="end != null">
+            AND actual_exit &lt;= #{end}
+        </if>
+        GROUP BY driver_no, driver_name, plate_number
+        ORDER BY COUNT(*) DESC
+        LIMIT 10
+    </select>
+
+    <!-- 热门车位类型Top10报表 -->
+    <select id="getSpotTypeUsageTop10" resultType="com.example.springboot.pojo.dto.SpotTypeUsageDTO">
+        SELECT st.name AS name, COUNT(*) AS number
+        FROM exit_record er
+        INNER JOIN parking_spot ps ON er.spot_no = ps.spot_no
+        INNER JOIN spot_type st ON ps.type_id = st.id
+        WHERE 1=1
+        <if test="begin != null">
+            AND er.actual_exit &gt;= #{begin}
+        </if>
+        <if test="end != null">
+            AND er.actual_exit &lt;= #{end}
+        </if>
+        GROUP BY st.id, st.name
+        ORDER BY COUNT(*) DESC
+        LIMIT 10
+    </select>
+
+</mapper>

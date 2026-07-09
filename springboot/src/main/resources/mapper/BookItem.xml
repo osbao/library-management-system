@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.springboot.mapper.BookItemMapper">
+
+    <select id="listByIsbn" resultType="com.example.springboot.entity.BookItem">
+        SELECT * FROM book_item 
+        WHERE isbn = #{isbn} AND deleted = 0
+        ORDER BY storage_time DESC
+    </select>
+
+    <select id="listByBookId" resultType="com.example.springboot.entity.BookItem">
+        SELECT bi.* FROM book_item bi
+        INNER JOIN book b ON bi.isbn = b.book_no
+        WHERE b.id = #{bookId} AND bi.deleted = 0
+        ORDER BY bi.storage_time DESC
+    </select>
+    
+    <select id="listByStatus" resultType="com.example.springboot.entity.BookItem">
+        SELECT * FROM book_item
+        WHERE status = #{status} AND deleted = 0
+        ORDER BY storage_time DESC
+    </select>
+    
+    <update id="updateStatus">
+        UPDATE book_item
+        SET status = #{status}
+        WHERE id = #{id}
+    </update>
+
+</mapper>

@@ -1,0 +1,27 @@
+{
+  "name": "竞伙伴",
+  "appid": "__UNI__XXXXXX",
+  "description": "大学生竞赛组队小程序",
+  "versionName": "1.0.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "mp-weixin": {
+    "appid": "wx0000000000000000",
+    "setting": {
+      "urlCheck": false,
+      "es6": true,
+      "postcss": true,
+      "minified": true
+    },
+    "usingComponents": true,
+    "permission": {
+      "scope.userLocation": {
+        "desc": "获取你的位置信息用于查找附近队友"
+      }
+    },
+    "requiredPrivateInfos": []
+  },
+  "uniStatistics": {
+    "enable": false
+  }
+}

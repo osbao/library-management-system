@@ -1,0 +1,13 @@
+{
+  "name": "competition-mock-server",
+  "version": "1.0.0",
+  "description": "竞伙伴 - 大学生竞赛组队与报名平台 模拟后端",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  }
+}

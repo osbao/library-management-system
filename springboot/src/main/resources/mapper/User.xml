@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.UserMapper">
+    <insert id="save">
+        insert into user(name,username,password,age,sex,phone,address,account)
+        values(#{name},#{username},#{password},#{age},#{sex},#{phone},#{address},#{account})
+    </insert>
+
+    <insert id="sign">
+        insert into user(name, username, password)
+        values(#{name}, #{username}, #{password})
+    </insert>
+
+    <update id="updateById">
+        update user
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="password != null and password != ''">password = #{password},</if>
+            <if test="age != null">age = #{age},</if>
+            <if test="sex != null">sex = #{sex},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="updatetime != null">updatetime = #{updatetime},</if>
+            <if test="account != null">account = #{account},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="username != null">username = #{username},</if>
+        </set>
+        where id= #{id}
+    </update>
+
+<!--    <update id="updateByUserNo">-->
+<!--        update user set account = account + #{score}-->
+<!--        <set>-->
+<!--            <if test="status != null">-->
+<!--                status  = #{status}-->
+<!--            </if>-->
+<!--        </set>-->
+<!--        where username = #{userNo}-->
+<!--    </update>-->
+
+    <delete id="deleteById">
+        delete from user where id = #{id}
+    </delete>
+    <select id="list" resultType="com.example.springboot.entity.User">
+        SELECT * FROM user
+    </select>
+    <select id="listByCondition" resultType="com.example.springboot.entity.User">
+        SELECT * From user
+            <where>
+                <if test="name != null and name !=''">
+                    name like concat('%', #{name}, '%')
+                </if>
+                <if test="phone != null and phone !=''">
+                    and phone like concat('%', #{phone}, '%')
+                </if>
+            </where>
+        order by id desc
+    </select>
+
+    <select id="getById" resultType="com.example.springboot.entity.User">
+        select * from user where id = #{id}
+    </select>
+
+    <select id="getByUsername" resultType="com.example.springboot.entity.User">
+        select * from user where username = #{username}
+    </select>
+
+    <select id="getByName" resultType="com.example.springboot.entity.User">
+        select * from user where name = #{name}
+    </select>
+
+    <!-- 更新用户积分 -->
+    <update id="updateScore">
+        update user set account = account + #{score} where username = #{userNo}
+    </update>
+</mapper>

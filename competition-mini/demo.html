@@ -1,0 +1,758 @@
+<![CDATA[<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>竞伙伴 - 大学生竞赛组队</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f5f5f5;color:#333;max-width:420px;margin:0 auto;min-height:100vh;position:relative;overflow-x:hidden}
+body::before{content:'';position:fixed;top:0;left:50%;transform:translateX(-50%);width:420px;height:100%;background:#f5f5f5;z-index:-1}
+.header{position:sticky;top:0;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:12px 16px;z-index:100;display:flex;align-items:center;justify-content:space-between;font-size:16px;font-weight:600}
+.header .title{display:flex;align-items:center;gap:8px}
+.header .title .icon{font-size:20px}
+.header .user-info{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer}
+.header .user-info .avatar{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:14px}
+.page{display:none;padding-bottom:60px;animation:fadeIn 0.3s}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.card{background:#fff;border-radius:12px;padding:16px;margin:12px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+.card-title{font-size:16px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500}
+.badge-primary{background:#e8f0fe;color:#667eea}
+.badge-success{background:#e6f9ed;color:#12b34c}
+.badge-warning{background:#fff8e6;color:#e6a817}
+.badge-danger{background:#ffe8e8;color:#e64040}
+.btn{padding:8px 16px;border-radius:20px;border:none;font-size:13px;cursor:pointer;font-weight:500;transition:all 0.2s}
+.btn-primary{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
+.btn-primary:active{opacity:0.8}
+.btn-outline{border:1px solid #667eea;color:#667eea;background:transparent}
+.btn-success{background:#12b34c;color:#fff}
+.btn-sm{padding:4px 12px;font-size:12px}
+.btn-block{width:100%;padding:10px;font-size:14px}
+.input{width:100%;padding:10px 12px;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;outline:none;transition:border 0.2s}
+.input:focus{border-color:#667eea}
+.input-search{background:#f5f5f5;border-radius:20px;padding:8px 16px 8px 36px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:12px center;background-color:#f5f5f5}
+.tag{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;margin:2px 4px 2px 0;background:#f0f0f0;color:#666}
+.tag-active{background:#667eea20;color:#667eea;border:1px solid #667eea40}
+.tag-container{display:flex;flex-wrap:wrap;gap:4px}
+.tab-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:420px;background:#fff;display:flex;border-top:1px solid #eee;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:6px 0;font-size:10px;color:#999;cursor:pointer;transition:color 0.2s}
+.tab-item .tab-icon{font-size:20px;margin-bottom:2px}
+.tab-item.active{color:#667eea}
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:16px;padding:24px;width:85%;max-width:380px;max-height:80vh;overflow-y:auto}
+.modal h3{font-size:18px;margin-bottom:16px;text-align:center}
+.search-bar{padding:8px 16px}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.stat-item{text-align:center;padding:8px 4px}
+.stat-item .num{font-size:20px;font-weight:700;color:#667eea}
+.stat-item .label{font-size:11px;color:#999;margin-top:2px}
+.list-item{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid #f0f0f0;gap:12px}
+.list-item:last-child{border-bottom:none}
+.list-item .li-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.list-item .li-info{flex:1;min-width:0}
+.list-item .li-title{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.list-item .li-sub{font-size:12px;color:#999;margin-top:2px}
+.list-item .li-right{text-align:right;flex-shrink:0}
+.empty-state{text-align:center;padding:40px 16px;color:#999}
+.empty-state .empty-icon{font-size:48px;margin-bottom:12px}
+.skill-picker{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.skill-chip{padding:4px 12px;border-radius:14px;font-size:12px;border:1px solid #ddd;cursor:pointer;transition:all 0.2s}
+.skill-chip.selected{background:#667eea;color:#fff;border-color:#667eea}
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.75);color:#fff;padding:10px 20px;border-radius:20px;font-size:14px;z-index:300;pointer-events:none;opacity:0;transition:opacity 0.3s}
+.toast.show{opacity:1}
+.banner{height:140px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:12px;margin:12px 16px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:24px;font-weight:700;position:relative;overflow:hidden}
+.banner::after{content:'';position:absolute;top:-30px;right:-30px;width:100px;height:100px;background:rgba(255,255,255,0.1);border-radius:50%}
+.detail-header{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:20px 16px;margin-bottom:12px}
+.detail-header h2{font-size:18px;margin-bottom:8px}
+.detail-header .meta{font-size:12px;opacity:0.9;display:flex;gap:12px;flex-wrap:wrap}
+.info-row{display:flex;justify-content:space-between;padding:8px 0;font-size:13px;border-bottom:1px solid #f5f5f5}
+.info-row .label{color:#999}
+.info-row .value{color:#333;font-weight:500}
+.section{margin-top:12px}
+.section h4{font-size:14px;margin-bottom:8px;color:#333}
+.score-bar{display:flex;align-items:center;gap:8px}
+.score-bar .bar{flex:1;height:6px;background:#eee;border-radius:3px;overflow:hidden}
+.score-bar .bar .fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#667eea,#764ba2);transition:width 0.5s}
+.score-bar .score{font-size:14px;font-weight:700;color:#667eea;min-width:35px}
+.notice-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#e64040;margin-left:4px}
+</style>
+</head>
+<body>
+
+<div class="header" id="headerBar">
+  <div class="title"><span class="icon">🏆</span>竞伙伴</div>
+  <div class="user-info" id="headerUser" onclick="switchTab('user')">
+    <span id="headerNick">未登录</span>
+    <div class="avatar" id="headerAvatar">👤</div>
+  </div>
+</div>
+
+<!-- 首页 -->
+<div class="page active" id="page-home">
+  <div class="banner">🏆<br>找队友 打比赛</div>
+  <div class="card">
+    <div class="card-title">📊 平台数据</div>
+    <div class="stats-grid" id="homeStats">
+      <div class="stat-item"><div class="num">-</div><div class="label">竞赛</div></div>
+      <div class="stat-item"><div class="num">-</div><div class="label">用户</div></div>
+      <div class="stat-item"><div class="num">-</div><div class="label">团队</div></div>
+      <div class="stat-item"><div class="num">-</div><div class="label">报名</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">🔥 热门竞赛</div>
+    <div id="hotContests">加载中...</div>
+  </div>
+</div>
+
+<!-- 竞赛列表 -->
+<div class="page" id="page-contest">
+  <div class="search-bar"><input class="input input-search" id="contestSearch" placeholder="搜索竞赛..." oninput="loadContestList()"></div>
+  <div class="card">
+    <div class="tag-container" style="margin-bottom:8px">
+      <span class="tag tag-active" data-type="all" onclick="filterContest('all',this)">全部</span>
+    </div>
+    <div id="contestList">加载中...</div>
+  </div>
+</div>
+
+<!-- 组队广场 -->
+<div class="page" id="page-team">
+  <div class="search-bar"><input class="input input-search" id="teamSearch" placeholder="搜索团队..." oninput="loadTeamList()"></div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div class="card-title" style="margin-bottom:0">🧑‍🤝‍🧑 组队广场</div>
+      <button class="btn btn-primary btn-sm" onclick="showCreateTeam()">+ 发布招募</button>
+    </div>
+    <div id="teamList">加载中...</div>
+  </div>
+</div>
+
+<!-- 智能匹配 -->
+<div class="page" id="page-match">
+  <div class="card">
+    <div class="card-title">🎯 智能匹配队友</div>
+    <p style="font-size:13px;color:#999;margin-bottom:12px">基于您的技能标签，推荐最合适的队友</p>
+    <div id="matchTeammate">请先登录</div>
+  </div>
+  <div class="card">
+    <div class="card-title">🔍 推荐团队</div>
+    <div id="matchTeam">请先登录</div>
+  </div>
+</div>
+
+<!-- 消息 -->
+<div class="page" id="page-message">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div class="card-title" style="margin-bottom:0">📬 消息通知</div>
+      <button class="btn btn-outline btn-sm" onclick="markAllRead()">全部已读</button>
+    </div>
+    <div id="messageList">请先登录</div>
+  </div>
+</div>
+
+<!-- 个人中心 -->
+<div class="page" id="page-user">
+  <div class="card">
+    <div style="text-align:center;padding:16px 0">
+      <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:8px">👤</div>
+      <div style="font-size:16px;font-weight:600" id="profileNick">未登录</div>
+      <div style="font-size:12px;color:#999;margin-top:4px" id="profileSchool"></div>
+      <div style="margin-top:8px" id="profileSkills"></div>
+    </div>
+    <div class="stats-grid" style="margin-top:8px">
+      <div class="stat-item"><div class="num" id="profileScore">-</div><div class="label">综合分</div></div>
+      <div class="stat-item"><div class="num" id="profileContests">-</div><div class="label">参赛</div></div>
+      <div class="stat-item"><div class="num" id="profileWins">-</div><div class="label">获奖</div></div>
+      <div class="stat-item"><div class="num" id="profileTeams">-</div><div class="label">团队</div></div>
+    </div>
+  </div>
+  <div class="card" onclick="switchTab('myEnroll')" style="cursor:pointer">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span>📋 我的报名</span><span style="color:#999">›</span>
+    </div>
+  </div>
+  <div class="card" onclick="switchTab('myTeam')" style="cursor:pointer">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span>👥 我的团队</span><span style="color:#999">›</span>
+    </div>
+  </div>
+  <div class="card">
+    <button class="btn btn-outline btn-block" onclick="showLogin()">🔄 切换账号</button>
+  </div>
+</div>
+
+<!-- 我的报名 -->
+<div class="page" id="page-myEnroll">
+  <div class="card">
+    <div class="card-title">📋 我的报名记录</div>
+    <div id="myEnrollList">请先登录</div>
+  </div>
+</div>
+
+<!-- 我的团队 -->
+<div class="page" id="page-myTeam">
+  <div class="card">
+    <div class="card-title">👥 我的团队</div>
+    <div id="myTeamList">请先登录</div>
+  </div>
+</div>
+
+<!-- 竞赛详情 -->
+<div class="page" id="page-contest-detail">
+  <div id="detailContent"></div>
+</div>
+
+<!-- 团队详情 -->
+<div class="page" id="page-team-detail">
+  <div id="teamDetailContent"></div>
+</div>
+
+<!-- 登录弹窗 -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal">
+    <h3>👋 登录竞伙伴</h3>
+    <p style="font-size:13px;color:#999;text-align:center;margin-bottom:16px">选择预设用户快速登录体验</p>
+    <div id="loginUserList" style="max-height:300px;overflow-y:auto"></div>
+    <button class="btn btn-outline btn-block" style="margin-top:12px" onclick="closeLogin()">取消</button>
+  </div>
+</div>
+
+<!-- 报名弹窗 -->
+<div class="modal-overlay" id="enrollModal">
+  <div class="modal">
+    <h3>📝 竞赛报名</h3>
+    <div id="enrollInfo"></div>
+    <div style="margin-top:12px">
+      <label style="font-size:13px;color:#666">队伍名称</label>
+      <input class="input" id="enrollTeamName" placeholder="个人参赛可不填" style="margin-top:4px">
+    </div>
+    <div style="margin-top:8px">
+      <label style="font-size:13px;color:#666">角色</label>
+      <select class="input" id="enrollRole" style="margin-top:4px">
+        <option value="队长">队长</option>
+        <option value="队员">队员</option>
+        <option value="个人">个人</option>
+      </select>
+    </div>
+    <button class="btn btn-primary btn-block" style="margin-top:16px" onclick="doEnroll()">确认报名</button>
+    <button class="btn btn-outline btn-block" style="margin-top:8px" onclick="closeEnroll()">取消</button>
+  </div>
+</div>
+
+<!-- 创建团队弹窗 -->
+<div class="modal-overlay" id="createTeamModal">
+  <div class="modal">
+    <h3>📢 发布组队招募</h3>
+    <div style="margin-top:8px">
+      <label style="font-size:13px;color:#666">关联竞赛</label>
+      <select class="input" id="createTeamContest" style="margin-top:4px"></select>
+    </div>
+    <div style="margin-top:8px">
+      <label style="font-size:13px;color:#666">团队名称</label>
+      <input class="input" id="createTeamName" placeholder="给团队起个名字" style="margin-top:4px">
+    </div>
+    <div style="margin-top:8px">
+      <label style="font-size:13px;color:#666">招募标题</label>
+      <input class="input" id="createTeamTitle" placeholder="一句话说明招募需求" style="margin-top:4px">
+    </div>
+    <div style="margin-top:8px">
+      <label style="font-size:13px;color:#666">详细描述</label>
+      <textarea class="input" id="createTeamDesc" rows="3" placeholder="描述项目内容和需要的队友..." style="margin-top:4px;resize:none"></textarea>
+    </div>
+    <div style="margin-top:8px">
+      <label style="font-size:13px;color:#666">所需技能</label>
+      <div id="createTeamSkills" class="skill-picker"></div>
+    </div>
+    <button class="btn btn-primary btn-block" style="margin-top:16px" onclick="doCreateTeam()">发布招募</button>
+    <button class="btn btn-outline btn-block" style="margin-top:8px" onclick="closeCreateTeam()">取消</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- 底部导航 -->
+<div class="tab-bar" id="tabBar">
+  <div class="tab-item active" onclick="switchTab('home')"><span class="tab-icon">🏠</span>首页</div>
+  <div class="tab-item" onclick="switchTab('contest')"><span class="tab-icon">🏅</span>竞赛</div>
+  <div class="tab-item" onclick="switchTab('team')"><span class="tab-icon">👥</span>组队</div>
+  <div class="tab-item" onclick="switchTab('match')"><span class="tab-icon">🎯</span>匹配</div>
+  <div class="tab-item" onclick="switchTab('message')"><span class="tab-icon">💬</span>消息</div>
+  <div class="tab-item" onclick="switchTab('user')"><span class="tab-icon">👤</span>我的</div>
+</div>
+
+<script>
+const BASE = 'http://localhost:9091';
+let currentUser = null;
+let token = null;
+let currentTab = 'home';
+let enrollContestId = null;
+
+// ========== 工具函数 ==========
+async function api(url, options = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['token'] = token;
+  const res = await fetch(BASE + url, { ...options, headers });
+  return res.json();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ========== Tab切换 ==========
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  const page = document.getElementById('page-' + tab);
+  if (page) page.classList.add('active');
+  const tabEls = document.querySelectorAll('.tab-item');
+  const tabMap = { home: 0, contest: 1, team: 2, match: 3, message: 4, user: 5, myEnroll: 5, myTeam: 5 };
+  const idx = tabMap[tab] !== undefined ? tabMap[tab] : 0;
+  if (tabEls[idx]) tabEls[idx].classList.add('active');
+  
+  if (tab === 'home') loadHome();
+  if (tab === 'contest') loadContestList();
+  if (tab === 'team') loadTeamList();
+  if (tab === 'match') loadMatch();
+  if (tab === 'message') loadMessages();
+  if (tab === 'user') loadProfile();
+  if (tab === 'myEnroll') loadMyEnroll();
+  if (tab === 'myTeam') loadMyTeam();
+}
+
+// ========== 登录 ==========
+async function showLogin() {
+  const res = await api('/api/home/stats');
+  // 直接用预设用户
+  const users = ['代码诗人','设计师小王','数据魔法师','前端小旋风','路演达人','摄影小哥','嵌入式达人','财务小能手'];
+  let html = '';
+  users.forEach(name => {
+    html += `<div style="padding:12px;border-radius:8px;margin:4px 0;background:#f8f8f8;cursor:pointer;text-align:center;font-size:14px" onclick="doLogin('${name}')">${name}</div>`;
+  });
+  document.getElementById('loginUserList').innerHTML = html;
+  document.getElementById('loginModal').classList.add('show');
+}
+
+function closeLogin() {
+  document.getElementById('loginModal').classList.remove('show');
+}
+
+async function doLogin(nickName) {
+  const res = await api('/api/user/login', { method: 'POST', body: JSON.stringify({ nickName }) });
+  if (res.code === '200') {
+    currentUser = res.data.user;
+    token = res.data.token;
+    updateHeader();
+    closeLogin();
+    showToast('登录成功: ' + nickName);
+    loadProfile();
+  }
+}
+
+function updateHeader() {
+  if (currentUser) {
+    document.getElementById('headerNick').textContent = currentUser.nickName;
+    document.getElementById('headerAvatar').textContent = currentUser.nickName.charAt(0);
+  }
+}
+
+// ========== 首页 ==========
+async function loadHome() {
+  const statsRes = await api('/api/home/stats');
+  if (statsRes.code === '200') {
+    const d = statsRes.data;
+    const st = document.getElementById('homeStats');
+    st.innerHTML = `<div class="stat-item"><div class="num">${d.contestCount}</div><div class="label">竞赛</div></div>
+      <div class="stat-item"><div class="num">${d.userCount}</div><div class="label">用户</div></div>
+      <div class="stat-item"><div class="num">${d.teamCount}</div><div class="label">团队</div></div>
+      <div class="stat-item"><div class="num">${d.enrollmentCount}</div><div class="label">报名</div></div>`;
+  }
+  const hotRes = await api('/api/contest/hot');
+  if (hotRes.code === '200') {
+    let html = '';
+    hotRes.data.forEach(c => {
+      html += `<div class="list-item" onclick="showContestDetail(${c.id})" style="cursor:pointer">
+        <div class="li-avatar">${c.shortName.charAt(0)}</div>
+        <div class="li-info"><div class="li-title">${c.shortName}</div><div class="li-sub">${c.organizer}</div></div>
+        <div class="li-right"><span class="badge badge-primary">${c.status}</span><div style="font-size:11px;color:#999;margin-top:2px">${c.enrollmentCount}人报名</div></div>
+      </div>`;
+    });
+    document.getElementById('hotContests').innerHTML = html;
+  }
+}
+
+// ========== 竞赛列表 ==========
+let contestTypes = [];
+async function loadContestList() {
+  const keyword = document.getElementById('contestSearch')?.value || '';
+  const res = await api('/api/contest/list?pageNum=1&pageSize=20&keyword=' + keyword);
+  if (res.code === '200') {
+    let html = '';
+    res.data.list.forEach(c => {
+      html += `<div class="list-item" onclick="showContestDetail(${c.id})" style="cursor:pointer">
+        <div class="li-avatar">${c.shortName.charAt(0)}</div>
+        <div class="li-info"><div class="li-title">${c.shortName}</div><div class="li-sub">${c.type} · ${c.level}</div></div>
+        <div class="li-right"><span class="badge badge-${c.status==='报名中'?'success':'warning'}">${c.status}</span></div>
+      </div>`;
+    });
+    document.getElementById('contestList').innerHTML = html || '<div class="empty-state">暂无竞赛</div>';
+    // 类型筛选
+    if (contestTypes.length === 0) {
+      const typesRes = await api('/api/contest/types');
+      if (typesRes.code === '200') {
+        contestTypes = typesRes.data;
+        let tHtml = '<span class="tag tag-active" data-type="all" onclick="filterContest(\'all\',this)">全部</span>';
+        contestTypes.forEach(t => { tHtml += `<span class="tag" data-type="${t}" onclick="filterContest('${t}',this)">${t}</span>`; });
+        document.querySelector('#page-contest .tag-container').innerHTML = tHtml;
+      }
+    }
+  }
+}
+
+function filterContest(type, el) {
+  document.querySelectorAll('#page-contest .tag').forEach(t => t.classList.remove('tag-active'));
+  el.classList.add('tag-active');
+  loadContestListFiltered(type);
+}
+
+async function loadContestListFiltered(type) {
+  const keyword = document.getElementById('contestSearch')?.value || '';
+  let url = '/api/contest/list?pageNum=1&pageSize=20&keyword=' + keyword;
+  if (type !== 'all') url += '&type=' + type;
+  const res = await api(url);
+  if (res.code === '200') {
+    let html = '';
+    res.data.list.forEach(c => {
+      html += `<div class="list-item" onclick="showContestDetail(${c.id})" style="cursor:pointer">
+        <div class="li-avatar">${c.shortName.charAt(0)}</div>
+        <div class="li-info"><div class="li-title">${c.shortName}</div><div class="li-sub">${c.type} · ${c.level}</div></div>
+        <div class="li-right"><span class="badge badge-${c.status==='报名中'?'success':'warning'}">${c.status}</span></div>
+      </div>`;
+    });
+    document.getElementById('contestList').innerHTML = html || '<div class="empty-state">暂无竞赛</div>';
+  }
+}
+
+// ========== 竞赛详情 ==========
+async function showContestDetail(id) {
+  const res = await api('/api/contest/' + id);
+  if (res.code === '200') {
+    const c = res.data;
+    let html = `<div class="detail-header">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span onclick="switchTab('contest')" style="cursor:pointer;font-size:20px">←</span>
+        <h2>${c.shortName}</h2>
+      </div>
+      <div style="font-size:14px">${c.name}</div>
+      <div class="meta" style="margin-top:8px"><span class="badge" style="background:rgba(255,255,255,0.3);color:#fff">${c.type}</span><span class="badge" style="background:rgba(255,255,255,0.3);color:#fff">${c.level}</span><span class="badge" style="background:rgba(255,255,255,0.3);color:#fff">${c.status}</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📖 竞赛介绍</div>
+      <p style="font-size:13px;line-height:1.6;color:#666">${c.description}</p>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 基本信息</div>
+      <div class="info-row"><span class="label">主办方</span><span class="value">${c.organizer}</span></div>
+      <div class="info-row"><span class="label">报名截止</span><span class="value">${c.deadline}</span></div>
+      <div class="info-row"><span class="label">比赛时间</span><span class="value">${c.startDate} ~ ${c.endDate}</span></div>
+      <div class="info-row"><span class="label">地点</span><span class="value">${c.location}</span></div>
+      <div class="info-row"><span class="label">队伍人数</span><span class="value">${c.minTeamSize}-${c.maxTeamSize}人</span></div>
+      <div class="info-row"><span class="label">已报名</span><span class="value">${c.enrollmentCount}人</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📜 参赛规则</div>
+      <pre style="font-size:13px;line-height:1.6;color:#666;white-space:pre-wrap">${c.rules}</pre>
+    </div>
+    <div class="card">
+      <button class="btn btn-primary btn-block" onclick="showEnroll(${c.id},'${c.shortName}')">📝 立即报名</button>
+    </div>`;
+    document.getElementById('detailContent').innerHTML = html;
+    switchToPage('page-contest-detail');
+  }
+}
+
+function switchToPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ========== 报名 ==========
+function showEnroll(contestId, contestName) {
+  if (!currentUser) { showToast('请先登录'); showLogin(); return; }
+  enrollContestId = contestId;
+  document.getElementById('enrollInfo').innerHTML = `<p style="font-size:14px">报名竞赛: <strong>${contestName}</strong></p>`;
+  document.getElementById('enrollModal').classList.add('show');
+}
+
+function closeEnroll() { document.getElementById('enrollModal').classList.remove('show'); }
+
+async function doEnroll() {
+  const teamName = document.getElementById('enrollTeamName').value;
+  const role = document.getElementById('enrollRole').value;
+  const res = await api('/api/contest/register', {
+    method: 'POST',
+    body: JSON.stringify({ contestId: enrollContestId, teamName, role })
+  });
+  if (res.code === '200') {
+    showToast('报名成功！');
+    closeEnroll();
+  } else {
+    showToast(res.msg || '报名失败');
+  }
+}
+
+// ========== 组队广场 ==========
+async function loadTeamList() {
+  const keyword = document.getElementById('teamSearch')?.value || '';
+  const res = await api('/api/team/list?pageNum=1&pageSize=20&keyword=' + keyword);
+  if (res.code === '200') {
+    let html = '';
+    res.data.list.forEach(t => {
+      html += `<div class="list-item" onclick="showTeamDetail(${t.id})" style="cursor:pointer">
+        <div class="li-avatar">${t.teamName.charAt(0)}</div>
+        <div class="li-info"><div class="li-title">${t.teamName}</div><div class="li-sub">${t.title} · ${t.contestName}</div></div>
+        <div class="li-right"><span class="badge badge-success">${t.status}</span><div style="font-size:11px;color:#999;margin-top:2px">${t.currentSize}/${t.maxSize}人</div></div>
+      </div>`;
+    });
+    document.getElementById('teamList').innerHTML = html || '<div class="empty-state">暂无招募团队</div>';
+  }
+}
+
+async function showTeamDetail(id) {
+  const res = await api('/api/team/' + id);
+  if (res.code === '200') {
+    const t = res.data;
+    let skillsHtml = t.requiredSkills.map(s => `<span class="tag">${s}</span>`).join('');
+    let appsHtml = '';
+    if (t.applications && t.applications.length > 0) {
+      t.applications.forEach(a => {
+        appsHtml += `<div class="list-item">
+          <div class="li-avatar" style="width:30px;height:30px;font-size:12px">${a.userName.charAt(0)}</div>
+          <div class="li-info"><div class="li-title" style="font-size:13px">${a.userName}</div><div class="li-sub">${(a.skills||[]).join('、')}</div></div>
+          <div class="li-right"><span class="badge badge-${a.status==='已通过'?'success':a.status==='已拒绝'?'danger':'warning'}">${a.status}</span></div>
+        </div>`;
+      });
+    }
+    let html = `<div class="detail-header">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span onclick="switchTab('team')" style="cursor:pointer;font-size:20px">←</span>
+        <h2>${t.teamName}</h2>
+      </div>
+      <div style="font-size:14px">${t.title}</div>
+      <div class="meta" style="margin-top:8px">队长: ${t.leaderName} · ${t.currentSize}/${t.maxSize}人 · ${t.contestName}</div>
+    </div>
+    <div class="card">
+      <div class="card-title">📖 项目描述</div>
+      <p style="font-size:13px;line-height:1.6;color:#666;white-space:pre-wrap">${t.description}</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🏷️ 所需技能</div>
+      <div class="tag-container">${skillsHtml}</div>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 申请列表</div>
+      ${appsHtml || '<p style="font-size:13px;color:#999;text-align:center">暂无申请</p>'}
+    </div>
+    <div class="card">
+      <button class="btn btn-primary btn-block" onclick="applyTeam(${t.id})">🙋 申请加入</button>
+    </div>`;
+    document.getElementById('teamDetailContent').innerHTML = html;
+    switchToPage('page-team-detail');
+  }
+}
+
+async function applyTeam(teamId) {
+  if (!currentUser) { showToast('请先登录'); showLogin(); return; }
+  const res = await api('/api/team/apply', { method: 'POST', body: JSON.stringify({ teamId }) });
+  if (res.code === '200') {
+    showToast('申请已提交！');
+  } else {
+    showToast(res.msg || '申请失败');
+  }
+}
+
+// ========== 发布招募 ==========
+async function showCreateTeam() {
+  if (!currentUser) { showToast('请先登录'); showLogin(); return; }
+  // 加载竞赛列表
+  const res = await api('/api/contest/list?pageNum=1&pageSize=20');
+  let opts = '';
+  if (res.code === '200') {
+    res.data.list.forEach(c => { opts += `<option value="${c.id}">${c.shortName}</option>`; });
+  }
+  document.getElementById('createTeamContest').innerHTML = opts;
+  // 加载技能标签
+  const skillRes = await api('/api/skill/list');
+  if (skillRes.code === '200') {
+    let sHtml = '';
+    skillRes.data.forEach(s => { sHtml += `<span class="skill-chip" onclick="this.classList.toggle('selected')">${s}</span>`; });
+    document.getElementById('createTeamSkills').innerHTML = sHtml;
+  }
+  document.getElementById('createTeamModal').classList.add('show');
+}
+
+function closeCreateTeam() { document.getElementById('createTeamModal').classList.remove('show'); }
+
+async function doCreateTeam() {
+  const contestId = document.getElementById('createTeamContest').value;
+  const contestName = document.getElementById('createTeamContest').selectedOptions[0]?.text || '';
+  const teamName = document.getElementById('createTeamName').value;
+  const title = document.getElementById('createTeamTitle').value;
+  const description = document.getElementById('createTeamDesc').value;
+  const requiredSkills = [...document.querySelectorAll('#createTeamSkills .skill-chip.selected')].map(el => el.textContent);
+  if (!teamName || !title) { showToast('请填写团队名称和标题'); return; }
+  const res = await api('/api/team/create', {
+    method: 'POST',
+    body: JSON.stringify({ contestId: parseInt(contestId), contestName, teamName, title, description, requiredSkills })
+  });
+  if (res.code === '200') {
+    showToast('发布成功！');
+    closeCreateTeam();
+    loadTeamList();
+  } else {
+    showToast(res.msg || '发布失败');
+  }
+}
+
+// ========== 智能匹配 ==========
+async function loadMatch() {
+  if (!currentUser) { document.getElementById('matchTeammate').innerHTML='<div class="empty-state">请先登录</div>'; document.getElementById('matchTeam').innerHTML='<div class="empty-state">请先登录</div>'; return; }
+  const teammateRes = await api('/api/match/teammate');
+  if (teammateRes.code === '200') {
+    let html = '';
+    teammateRes.data.forEach(u => {
+      html += `<div class="list-item">
+        <div class="li-avatar">${u.nickName.charAt(0)}</div>
+        <div class="li-info"><div class="li-title">${u.nickName}</div><div class="li-sub">${(u.skills||[]).slice(0,3).join('、')} · ${u.school}</div></div>
+        <div class="li-right">
+          <div class="score-bar"><div class="bar"><div class="fill" style="width:${u.matchScore}%"></div></div><span class="score">${u.matchScore}%</span></div>
+          <div style="font-size:10px;color:#999;margin-top:2px">${u.matchReason}</div>
+        </div>
+      </div>`;
+    });
+    document.getElementById('matchTeammate').innerHTML = html || '<div class="empty-state">暂无推荐</div>';
+  }
+  const teamRes = await api('/api/match/team');
+  if (teamRes.code === '200') {
+    let html = '';
+    teamRes.data.forEach(t => {
+      html += `<div class="list-item" onclick="showTeamDetail(${t.id})" style="cursor:pointer">
+        <div class="li-avatar">${t.teamName.charAt(0)}</div>
+        <div class="li-info"><div class="li-title">${t.teamName}</div><div class="li-sub">${t.title}</div></div>
+        <div class="li-right">
+          <div class="score-bar"><div class="bar"><div class="fill" style="width:${t.matchScore}%"></div></div><span class="score">${t.matchScore}%</span></div>
+          <div style="font-size:10px;color:#999;margin-top:2px">${t.matchReason}</div>
+        </div>
+      </div>`;
+    });
+    document.getElementById('matchTeam').innerHTML = html || '<div class="empty-state">暂无推荐</div>';
+  }
+}
+
+// ========== 消息 ==========
+async function loadMessages() {
+  if (!currentUser) { document.getElementById('messageList').innerHTML='<div class="empty-state">请先登录</div>'; return; }
+  const res = await api('/api/message/list');
+  if (res.code === '200') {
+    let html = '';
+    if (res.data.unreadCount > 0) {
+      html += `<div style="font-size:13px;color:#e64040;margin-bottom:8px">${res.data.unreadCount}条未读消息</div>`;
+    }
+    res.data.list.forEach(m => {
+      html += `<div class="list-item" style="cursor:pointer" onclick="readMsg(${m.id})">
+        <div class="li-avatar" style="background:${m.isRead?'#ccc':'#667eea'}">${m.type==='system'?'📢':'📩'}</div>
+        <div class="li-info"><div class="li-title">${m.title}${m.isRead?'':'<span class="notice-dot"></span>'}</div><div class="li-sub">${m.content}</div><div style="font-size:10px;color:#bbb;margin-top:2px">${m.createTime}</div></div>
+      </div>`;
+    });
+    document.getElementById('messageList').innerHTML = html || '<div class="empty-state">暂无消息</div>';
+  }
+}
+
+async function readMsg(id) {
+  await api('/api/message/read/' + id, { method: 'PUT' });
+  loadMessages();
+}
+
+async function markAllRead() {
+  await api('/api/message/read-all', { method: 'PUT' });
+  showToast('已全部标为已读');
+  loadMessages();
+}
+
+// ========== 个人中心 ==========
+async function loadProfile() {
+  if (!currentUser) {
+    document.getElementById('profileNick').textContent = '未登录';
+    document.getElementById('profileSchool').textContent = '';
+    document.getElementById('profileSkills').innerHTML = '';
+    document.getElementById('profileScore').textContent = '-';
+    document.getElementById('profileContests').textContent = '-';
+    document.getElementById('profileWins').textContent = '-';
+    document.getElementById('profileTeams').textContent = '-';
+    return;
+  }
+  const res = await api('/api/user/profile');
+  if (res.code === '200') {
+    const u = res.data;
+    document.getElementById('profileNick').textContent = u.nickName;
+    document.getElementById('profileSchool').textContent = u.school || '未填写学校';
+    document.getElementById('profileSkills').innerHTML = (u.skills||[]).map(s=>`<span class="tag">${s}</span>`).join('');
+    document.getElementById('profileScore').textContent = u.score || '-';
+    document.getElementById('profileContests').textContent = u.contestCount || '0';
+    document.getElementById('profileWins').textContent = u.winCount || '0';
+    // 团队数
+    const teamRes = await api('/api/user/teams');
+    document.getElementById('profileTeams').textContent = teamRes.code==='200' ? teamRes.data.length : '0';
+  }
+}
+
+async function loadMyEnroll() {
+  if (!currentUser) { document.getElementById('myEnrollList').innerHTML='<div class="empty-state">请先登录</div>'; return; }
+  const res = await api('/api/contest/my-enrollments');
+  if (res.code === '200') {
+    let html = '';
+    res.data.forEach(e => {
+      html += `<div class="list-item">
+        <div class="li-avatar">${e.contestName.charAt(0)}</div>
+        <div class="li-info"><div class="li-title">${e.contestName}</div><div class="li-sub">${e.role} · ${e.teamName}</div></div>
+        <div class="li-right"><span class="badge badge-success">${e.status}</span><div style="font-size:11px;color:#999;margin-top:2px">${e.createTime}</div></div>
+      </div>`;
+    });
+    document.getElementById('myEnrollList').innerHTML = html || '<div class="empty-state">暂无报名记录</div>';
+  }
+}
+
+async function loadMyTeam() {
+  if (!currentUser) { document.getElementById('myTeamList').innerHTML='<div class="empty-state">请先登录</div>'; return; }
+  const res = await api('/api/user/teams');
+  if (res.code === '200') {
+    let html = '';
+    res.data.forEach(t => {
+      html += `<div class="list-item" onclick="showTeamDetail(${t.id})" style="cursor:pointer">
+        <div class="li-avatar">${t.teamName.charAt(0)}</div>
+        <div class="li-info"><div class="li-title">${t.teamName}</div><div class="li-sub">${t.title} · ${t.currentSize}/${t.maxSize}人</div></div>
+        <div class="li-right"><span class="badge badge-success">${t.status}</span></div>
+      </div>`;
+    });
+    document.getElementById('myTeamList').innerHTML = html || '<div class="empty-state">暂无团队</div>';
+  }
+}
+
+// ========== 初始化 ==========
+loadHome();
+showLogin();
+</script>
+</body>
+</html>
+]]>

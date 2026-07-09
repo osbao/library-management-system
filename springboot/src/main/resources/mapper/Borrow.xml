@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.BorrowMapper">
+    <insert id="save">
+        insert into borrow(book_name,book_no,barcode,book_item_id,user_no,user_name,user_phone,score,updatetime,days,return_date)
+        values(#{bookName}, #{bookNo}, #{barcode}, #{bookItemId}, #{userNo} ,#{userName} ,#{userPhone}, #{score}, #{updatetime},#{days},#{returnDate})
+    </insert>
+
+    <update id="updateById">
+        update borrow set book_name = #{bookName},book_no = #{bookNo},barcode = #{barcode},book_item_id = #{bookItemId},user_no = #{userNo},user_name=#{userName},
+                          user_phone= #{userPhone}, score= #{score}, updatetime=#{updatetime},
+                          status=#{status},days=#{days},return_date=#{returnDate}
+        where id= #{id}
+    </update>
+
+    <update id="updateStatus">
+        update borrow set status = #{status} where id = #{id}
+    </update>
+
+
+    <delete id="deleteById">
+        delete from borrow where id = #{id}
+    </delete>
+    <select id="list" resultType="com.example.springboot.entity.Borrow">
+        SELECT * FROM borrow order by id desc
+    </select>
+    <select id="listByCondition" resultType="com.example.springboot.entity.Borrow">
+        SELECT * From borrow
+        <where>
+            <if test="bookName != null and bookName !=''">
+                book_name like concat('%', #{bookName}, '%')
+            </if>
+            <if test="bookNo != null and bookNo !=''">
+                and book_no = #{bookNo}
+            </if>
+            <if test="userName != null and userName !=''">
+                and user_name = #{userName}
+            </if>
+            <if test="status != null and status !=''">
+                and status = #{status}
+            </if>
+        </where>
+        order by id desc
+    </select>
+
+    <select id="listReturByCondition" resultType="com.example.springboot.entity.Return_">
+        SELECT * From retur
+        <where>
+            <if test="bookName != null and bookName !=''">
+                book_name like concat('%', #{bookName}, '%')
+            </if>
+            <if test="bookNo != null and bookNo !=''">
+                and book_no = #{bookNo}
+            </if>
+            <if test="userName != null and userName !=''">
+                and user_name = #{userName}
+            </if>
+        </where>
+        order by id desc
+    </select>
+
+    <insert id="saveRetur">
+        insert into retur(book_name,book_no,barcode,book_item_id,user_no,user_name,user_phone,score,updatetime,days,return_date,real_date,status)
+        values(#{bookName},#{bookNo},#{barcode},#{bookItemId},#{userNo},#{userName},#{userPhone},#{score},#{updatetime},#{days},#{returnDate},#{realDate},#{status})
+    </insert>
+
+    <delete id="deleteReturById">
+        delete from retur where id = #{id}
+    </delete>
+
+    <select id="getById" resultType="com.example.springboot.entity.Borrow">
+        select * from borrow where id = #{id}
+    </select>
+
+    <select id="getCountByTimeRange" resultType="com.example.springboot.mapper.po.BorrowReturCountPO">
+        select  count(id) as count, DATE_FORMAT(createtime,'%Y-%m-%d') as date from
+        <if test="type == 1">
+            borrow
+        </if>
+        <if test="type == 2">
+            retur
+        </if>
+        where createtime IS NOT NULL
+        <choose>
+            <when test="timeRange == 'week'">
+                AND createtime >= DATE_SUB(NOW(),INTERVAL 1 WEEK)
+            </when>
+            <when test="timeRange == 'month'">
+                AND createtime >= DATE_SUB(NOW(),INTERVAL 1 MONTH)
+            </when>
+            <when test="timeRange == 'month2'">
+                AND createtime >= DATE_SUB(NOW(),INTERVAL 2 MONTH)
+            </when>
+            <when test="timeRange == 'month3'">
+                AND createtime >= DATE_SUB(NOW(),INTERVAL 3 MONTH)
+            </when>
+            <otherwise>
+                AND createtime >= DATE_SUB(NOW(),INTERVAL 1 WEEK)
+            </otherwise>
+        </choose>
+        GROUP BY DATE_FORMAT(createtime,'%Y-%m-%d')
+        ORDER BY date ASC
+    </select>
+    <select id="getSalesTop10" resultType="com.example.springboot.pojo.dto.BooksSalesDTO">
+        select b.name as name, count(bo.id) as number
+        from borrow bo 
+        left join book b on bo.book_no = b.book_no
+        where 1=1
+        <if test="begin != null">
+            and bo.createtime &gt; #{begin}
+        </if>
+        <if test="end != null">
+            and bo.createtime &lt; #{end}
+        </if>
+        and b.name is not null and b.name != ''
+        group by b.name
+        order by number desc
+        limit 0,10
+    </select>
+    <select id="getUsersTop10" resultType="com.example.springboot.pojo.dto.UsersBorrowDTO">
+        select bo.user_name as name, count(bo.id) as number
+        from borrow bo
+        where 1=1
+        <if test="begin != null">
+            and bo.createtime &gt; #{begin}
+        </if>
+        <if test="end != null">
+            and bo.createtime &lt; #{end}
+        </if>
+        and bo.user_name is not null and bo.user_name != ''
+        group by bo.user_name
+        order by number desc
+        limit 0,10
+    </select>
+    
+    <select id="getCategoryTop10" resultType="com.example.springboot.pojo.dto.CategorySalesDTO">
+        select b.category as name, count(bo.id) as number
+        from borrow bo 
+        left join book b on bo.book_no = b.book_no
+        where 1=1
+        <if test="begin != null">
+            and bo.createtime &gt; #{begin}
+        </if>
+        <if test="end != null">
+            and bo.createtime &lt; #{end}
+        </if>
+        and b.category is not null and b.category != ''
+        group by b.category
+        order by number desc
+        limit 0,10
+    </select>
+    
+    <!-- 预约相关查询 -->
+    <select id="listByUserNoAndStatus" resultType="com.example.springboot.entity.Borrow">
+        SELECT * FROM borrow
+        WHERE user_no = #{userNo}
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+        ORDER BY createtime DESC
+    </select>
+    
+    <!-- 查询超时的预约记录 - 暂时不使用，因为borrow表不存储预约阶段的记录 -->
+    <select id="listExpiredReservations" resultType="com.example.springboot.entity.Borrow">
+        SELECT * FROM borrow
+        WHERE status = '待取书'
+        ORDER BY createtime ASC
+    </select>
+    
+    <!-- 查询管理员端的待取书列表 - 暂时不使用，因为borrow表不存储预约阶段的记录 -->
+    <select id="listWaitingPickup" resultType="com.example.springboot.entity.Borrow">
+        SELECT * FROM borrow
+        WHERE status = '待取书'
+        ORDER BY createtime ASC
+    </select>
+    
+    <!-- 根据用户编号和图书编号查询预约记录 -->
+    <select id="getByUserNoAndBookNo" resultType="com.example.springboot.entity.Borrow">
+        SELECT * FROM borrow
+        WHERE user_no = #{userNo}
+          AND book_no = #{bookNo}
+          AND status IN ('待取书', '已借出')
+        ORDER BY id DESC
+        LIMIT 1
+    </select>
+    
+    <!-- 获取指定图书的借阅统计数据（按月份） -->
+    <select id="getBookBorrowStats" resultType="com.example.springboot.mapper.po.BorrowReturCountPO">
+        SELECT COUNT(id) AS count, DATE_FORMAT(createtime, '%Y-%m') AS date
+        FROM borrow
+        WHERE book_no = #{bookNo}
+          AND createtime IS NOT NULL
+        GROUP BY DATE_FORMAT(createtime, '%Y-%m')
+        ORDER BY date ASC
+    </select>
+
+
+</mapper>

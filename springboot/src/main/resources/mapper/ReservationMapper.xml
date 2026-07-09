@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.springboot.mapper.ReservationMapper">
+
+    <!-- 插入预约记录 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO reservation (
+            user_no, book_item_id, book_no, book_name, barcode, 
+            status, reserve_time, expire_time
+        ) VALUES (
+            #{userNo}, #{bookItemId}, #{bookNo}, #{bookName}, #{barcode},
+            #{status}, #{reserveTime}, #{expireTime}
+        )
+    </insert>
+
+    <!-- 根据ID查询 -->
+    <select id="getById" resultType="com.example.springboot.entity.Reservation">
+        SELECT * FROM reservation
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <!-- 根据用户编号查询预约列表 -->
+    <select id="listByUserNo" resultType="com.example.springboot.entity.Reservation">
+        SELECT * FROM reservation
+        WHERE user_no = #{userNo} AND deleted = 0
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+        ORDER BY reserve_time DESC
+    </select>
+
+    <!-- 查询待取书列表 -->
+    <select id="listWaitingPickup" resultType="com.example.springboot.entity.Reservation">
+        SELECT * FROM reservation
+        WHERE status = '待取书' AND deleted = 0
+        ORDER BY reserve_time ASC
+    </select>
+
+    <!-- 查询超时的预约记录 -->
+    <select id="listExpiredReservations" resultType="com.example.springboot.entity.Reservation">
+        SELECT * FROM reservation
+        WHERE status = '待取书' 
+          AND expire_time &lt; NOW()
+          AND deleted = 0
+        ORDER BY expire_time ASC
+    </select>
+
+    <!-- 更新预约状态 -->
+    <update id="updateStatus">
+        UPDATE reservation
+        SET status = #{status}
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <!-- 确认取书 -->
+    <update id="confirmPickup">
+        UPDATE reservation
+        SET status = '已取书',
+            pickup_time = #{pickupTime}
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <!-- 取消预约 -->
+    <update id="cancelReservation">
+        UPDATE reservation
+        SET status = '已取消',
+            cancel_time = #{cancelTime}
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <!-- 检查用户是否已预约某本图书 -->
+    <select id="getByUserNoAndBookItemId" resultType="com.example.springboot.entity.Reservation">
+        SELECT * FROM reservation
+        WHERE user_no = #{userNo}
+          AND book_item_id = #{bookItemId}
+          AND status IN ('待取书', '已取书')
+          AND deleted = 0
+        ORDER BY id DESC
+        LIMIT 1
+    </select>
+
+    <!-- 统计用户的预约数量 -->
+    <select id="countByUserNoAndStatus" resultType="int">
+        SELECT COUNT(*) FROM reservation
+        WHERE user_no = #{userNo}
+          AND status = #{status}
+          AND deleted = 0
+    </select>
+    
+    <!-- 根据ISBN统计每个月的预约数量 -->
+    <select id="countReservationsByBookNoAndMonth" resultType="com.example.springboot.mapper.po.BorrowReturCountPO">
+        SELECT COUNT(id) AS count, DATE_FORMAT(reserve_time, '%Y-%m') AS date
+        FROM reservation
+        WHERE book_no = #{bookNo}
+          AND deleted = 0
+          AND reserve_time IS NOT NULL
+          AND status != '已取消'
+        GROUP BY DATE_FORMAT(reserve_time, '%Y-%m')
+        ORDER BY date ASC
+    </select>
+    
+    <!-- 根据时间范围统计预约数量 -->
+    <select id="getCountByTimeRange" resultType="com.example.springboot.mapper.po.BorrowReturCountPO">
+        SELECT COUNT(id) AS count, DATE_FORMAT(reserve_time, '%Y-%m-%d') AS date
+        FROM reservation
+        WHERE deleted = 0
+          AND reserve_time IS NOT NULL
+          AND status != '已取消'
+          <choose>
+            <when test="timeRange == 'week'">
+                AND reserve_time >= DATE_SUB(NOW(), INTERVAL 1 WEEK)
+            </when>
+            <when test="timeRange == 'month'">
+                AND reserve_time >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
+            </when>
+            <when test="timeRange == 'month2'">
+                AND reserve_time >= DATE_SUB(NOW(), INTERVAL 2 MONTH)
+            </when>
+            <when test="timeRange == 'month3'">
+                AND reserve_time >= DATE_SUB(NOW(), INTERVAL 3 MONTH)
+            </when>
+            <otherwise>
+                AND reserve_time >= DATE_SUB(NOW(), INTERVAL 1 WEEK)
+            </otherwise>
+        </choose>
+        GROUP BY DATE_FORMAT(reserve_time, '%Y-%m-%d')
+        ORDER BY date ASC
+    </select>
+    
+    <!-- 管理员查询预约列表（带分页和筛选） -->
+    <select id="listForAdmin" resultType="com.example.springboot.entity.Reservation">
+        SELECT r.*, u.name AS userName, u.phone AS userPhone
+        FROM reservation r
+        LEFT JOIN user u ON r.user_no = u.username
+        WHERE r.deleted = 0
+        <if test="userName != null and userName != ''">
+            AND u.name LIKE CONCAT('%', #{userName}, '%')
+        </if>
+        <if test="userNo != null and userNo != ''">
+            AND r.user_no LIKE CONCAT('%', #{userNo}, '%')
+        </if>
+        <if test="bookName != null and bookName != ''">
+            AND r.book_name LIKE CONCAT('%', #{bookName}, '%')
+        </if>
+        <if test="status != null and status != ''">
+            AND r.status = #{status}
+        </if>
+        ORDER BY r.reserve_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+    
+    <!-- 管理员查询预约总数 -->
+    <select id="countForAdmin" resultType="int">
+        SELECT COUNT(*)
+        FROM reservation r
+        LEFT JOIN user u ON r.user_no = u.username
+        WHERE r.deleted = 0
+        <if test="userName != null and userName != ''">
+            AND u.name LIKE CONCAT('%', #{userName}, '%')
+        </if>
+        <if test="userNo != null and userNo != ''">
+            AND r.user_no LIKE CONCAT('%', #{userNo}, '%')
+        </if>
+        <if test="bookName != null and bookName != ''">
+            AND r.book_name LIKE CONCAT('%', #{bookName}, '%')
+        </if>
+        <if test="status != null and status != ''">
+            AND r.status = #{status}
+        </if>
+    </select>
+
+</mapper>
